@@ -1,5 +1,5 @@
 name: "short-story-skill"
 title: "AI 短篇小说写作 Skill"
-description: "用评审、写作、构思三线程循环写短篇，不设超短与中短两档：单章五百到一千字，每章留钩子，付费截断点在全文三分之一到一半多一点，写完再按总字数分类，改到评审说不用再改为止。"
+description: "用评审、写作、构思三线程循环写短篇，不设超短与中短两档：单章五百到一千字，每章留钩子，付费截断点按情节锚点定在全文 35%-55%，写完再按总字数分类，改到评审说不用再改为止。"
 category: "Work and knowledge"
 include_in_prompt: false
