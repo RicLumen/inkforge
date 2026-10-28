@@ -1,37 +1,52 @@
 # ✍️ InkForge — AI 短篇小说写作 Skill
 
-> **题材由你定，这里讲一篇短篇怎么一批一批写完。**
-> 当前版本：v1.0.9。
-> 用哪个 AI 写、配什么去 AI 味 skill、发在哪个平台，还没补上，见文末“待补”。
-
 <p align="center">
-  <img src="https://img.shields.io/badge/定位-短篇小说创作-brightgreen" alt="定位" />
-  <img src="https://img.shields.io/badge/写法-评审_写作_构思三线程-blue" alt="写法" />
+  <img src="https://img.shields.io/badge/版本-v1.0.10-blue" alt="版本" />
+  <img src="https://img.shields.io/badge/定位-中文短篇小说-brightgreen" alt="定位" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License" />
 </p>
 
-## 这是什么
+InkForge 是一个中文短篇小说写作 skill，题材由你定。
 
-InkForge 是一个中文短篇小说写作 skill，不限题材。
+## 怎么写
 
-它想回答四个问题：用什么 AI 写、配什么 skill 去 AI 味、小说按什么结构写、写完发哪里。现在写好的是结构这一块，其余三个见“待补”。
+构思、写作、评审三个角色分批循环：
 
-写法是构思、写作、评审三个角色分批循环：构思给方向，写作写一批，评审按八项量表打分，写作逐条改，评审说“不用再改”才进下一批。
+1. 构思给下一批的方向，并维护一张状态卡（主线、锚点、基调、视角、时间线、人物状态、未收伏笔）。
+2. 写作按方向写一批，第一批是引言加第 1–4 章，写完用计数脚本统计累计全文。
+3. 评审按八项量表逐项评，写作逐条改，评审给出“不用再改”才进下一批；同一批改到第 3 轮仍有分歧，交给用户定。
+4. 全篇写完后，评审对照全文核对状态卡和前后自洽，再用脚本核对截断点。
 
-## 写作格式
+评审最好在独立子 agent 或独立会话里运行，只看本批正文、状态卡、脚本输出和量表。
 
-动笔前不定总字数，写完再看篇幅。固定的只有这些：单章 500–1000 字，引言约 150 字，每章结尾留钩子，截断点在全文 35%–55%（全篇写完后用脚本核对）。完整规则见 `short-story-skill/SKILL.md`。
+## 格式要点
 
-## 快速开始
+- 动笔前不定总字数，写完再看篇幅。
+- 引言约 150 字，单章 500–1000 字，每章结尾留钩子。
+- 截断点在锚点章之后，全篇写完后应在全文 35%–55%。
+- 本批对话占比低于 15% 时，评审会点出来。
+
+完整规则见 `short-story-skill/SKILL.md`。
+
+## 安装
 
 ```
 npx skills add RicLumen/inkforge --skill short-story-skill
 ```
 
+## 使用
+
 装好后用命令开写，后面直接说你想写什么：
 
 ```
 /short-story-skill 你想写什么
+```
+
+计数脚本也可以单独运行：
+
+```
+python3 short-story-skill/scripts/count_chapters.py 全文.txt --batch-from 5
+python3 short-story-skill/scripts/count_chapters.py 全文.txt --anchor-chapter 6 --final
 ```
 
 ## 目录
@@ -49,13 +64,10 @@ inkforge/
     └── scripts/count_chapters.py # 计数脚本
 ```
 
-## 待补
+## 注意
 
-- 用哪个 AI、什么档位，配哪个去 AI 味 / 润色 skill：等对比测试。计划用同一段 prompt 让 GPT、Claude、Gemini 各写一小段，再分别比较用和不用 humanizer-zh，由人工评判。测试还没做，这里先空着。
-- 实测过的发布平台：待补。
-- 脱敏示例：待补，不放连载作品全文，收入只做脱敏展示。
+AI 生成的内容发布前请人工审校，并按平台规则查原创性和敏感词。
 
-## 边界
+## License
 
-- 只分享方法，不承诺收益。
-- AI 生成的内容发布前请人工审校，并按平台规则查原创性。
+MIT，见 `LICENSE`。
