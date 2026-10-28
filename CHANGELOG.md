@@ -2,6 +2,14 @@
 
 历史口径变更记录，不参与执行，执行以 SKILL.md 为准。版本按从新到旧排列。
 
+## v1.0.2（2026-10-29，删 Muse 专用命令，规则不变）
+
+- 快速开始不再为 Muse 写专用命令：删掉那条 degit 到 `~/workspace/custom-skills/`
+  的命令，安装只剩一条通用的 `npx skills add RicLumen/inkforge --skill
+  short-story-skill`；用法说明里的“Muse 里没有斜杠命令时”也改成通用的
+  “不支持斜杠命令的工具”，不再单点某个工具。
+
+
 ## v1.0.1（2026-10-29，安装方式改成无 clone，规则不变）
 
 - 参考大型 skill 项目的做法，快速开始不再用 `git clone`：大项目基本不让用户
