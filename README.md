@@ -1,18 +1,18 @@
 # ✍️ InkForge — AI 短篇小说方法 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前状态：v0.9.3。SKILL.md 已拆分为流程与索引，细则在 `short-story-skill/references/` 里；核心流程可用，欢迎按流程试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中。
+> 当前版本：v0.9.3。
+> 欢迎试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中。
 
 <p align="center">
   <img src="https://img.shields.io/badge/定位-短篇小说创作-brightgreen" alt="定位" />
   <img src="https://img.shields.io/badge/写法-评审_写作_构思三线程-blue" alt="写法" />
-  <img src="https://img.shields.io/badge/格式-单章_500--1000_字-purple" alt="格式" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License" />
 </p>
 
 ## 这是什么
 
-InkForge 是一个中文短篇写作 skill。
+InkForge 是一个中文短篇小说写作 skill。
 
 它回答短篇创作者最实际的问题：选择什么 AI 进行创作、搭配什么 skill 去ai味、小说按什么结构写、写完发哪里有人看。不限题材、不限脑洞、不限人物与世界观。
 
