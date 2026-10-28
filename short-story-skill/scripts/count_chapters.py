@@ -109,7 +109,7 @@ def dialogue_chars(text: str) -> int:
 
 def flag(count: int, lo: int, hi: int) -> str:
     if count < lo:
-        return "低于范围"
+        return "低于范围-警告"
     if count > hi:
         return "超范围"
     return "在范围内"
@@ -201,13 +201,20 @@ def main() -> int:
         print(f"警告：另有 {len(warnings) - 10} 条同类警告已省略")
 
     counts = [r[1] for r in rows if r[0] != "引言"]
-    out_of_range = sum(1 for c in counts if c < CHAPTER_MIN or c > CHAPTER_MAX)
+    dlg_total = sum(r[2] for r in rows if r[0] != "引言")
+    below = sum(1 for c in counts if c < CHAPTER_MIN)
+    above = sum(1 for c in counts if c > CHAPTER_MAX)
     print(
         f"\n正文合计: {sum(counts)} 字, 章数: {len(counts)}, "
         f"平均每章: {sum(counts) / len(counts):.1f} 字, "
         f"最短: {min(counts)} 字, 最长: {max(counts)} 字, "
-        f"超范围章数: {out_of_range}"
+        f"低于范围（警告）章数: {below}, 超范围章数: {above}"
     )
+    if counts:
+        ratio = dlg_total / sum(counts) if sum(counts) else 0
+        print(f"正文对话合计: {dlg_total} 字, 对话占比: {ratio:.1%}")
+        if ratio < 0.15:
+            print("警告：正文对话占比低于 15%，评审必须明确点名，不能直接放行。")
     if rows:
         print(f"全文合计（含引言）: {sum(r[1] for r in rows)} 字")
 
@@ -221,19 +228,20 @@ def main() -> int:
             )
         elif str(args.anchor_chapter) not in labels:
             if args.soft_total_chapters and not args.final:
-                intro = next((r[1] for r in rows if r[0] == "引言"), 0)
-                ch_counts = [r[1] for r in rows if r[0] != "引言"]
-                avg = sum(ch_counts) / len(ch_counts) if ch_counts else 0
-                denom = intro + args.soft_total_chapters * avg
-                numer = intro + args.anchor_chapter * avg
-                forecast = numer / denom if denom else 0
-                print(
-                    f"\n截断点（草稿阶段，预估，非判定）：锚点章节 {args.anchor_chapter} 尚未出现，"
-                    f"预估锚点累计约 {numer:.0f} 字（引言 + 锚点章号 × 平均章长 {avg:.0f} 字），"
-                    f"预估全篇约 {denom:.0f} 字（引言 + 软目标 {args.soft_total_chapters} 章 × 平均章长），"
-                    f"预估占比 {forecast:.1%}；预估偏离 35%-55% 时只作提前预警，"
-                    "判定只在全篇写完后用 --final 做。"
-                )
+                ch_counts0 = [r[1] for r in rows if r[0] != "引言"]
+                if args.soft_total_chapters < len(ch_counts0):
+                    print(
+                        f"\n警告：软目标总章数（{args.soft_total_chapters}）已小于已写章数"
+                        f"（{len(ch_counts0)}），软目标已失效，请先更新状态卡上的软目标区间，"
+                        "此处不输出预估占比。"
+                    )
+                else:
+                    print(
+                        f"\n截断点（草稿阶段）：锚点章节 {args.anchor_chapter} 尚未出现，"
+                        "此时预估占比约等于锚点章号 ÷ 软目标总章数，与稿子写得怎么样几乎无关，"
+                        "无信息量，不得作为评审第 2 项的通过依据；"
+                        "有信息量的预估从锚点章写完后开始（分子为实际锚点累计）。"
+                    )
             else:
                 print(f"\n截断点：锚点章节 {args.anchor_chapter} 尚未出现，不计算比例。")
         else:
@@ -253,6 +261,14 @@ def main() -> int:
             elif args.soft_total_chapters:
                 intro = next((r[1] for r in rows if r[0] == "引言"), 0)
                 ch_counts = [r[1] for r in rows if r[0] != "引言"]
+                if args.soft_total_chapters < len(ch_counts):
+                    print(
+                        f"\n警告：软目标总章数（{args.soft_total_chapters}）已小于已写章数"
+                        f"（{len(ch_counts)}），软目标已失效，请先更新状态卡上的软目标区间，"
+                        "此处不输出预估占比。"
+                    )
+                    return 0
+                # (fall through to forecast below)
                 avg = sum(ch_counts) / len(ch_counts) if ch_counts else 0
                 denom = intro + args.soft_total_chapters * avg
                 # numerator: actual if anchor written (it is, here), else estimate
