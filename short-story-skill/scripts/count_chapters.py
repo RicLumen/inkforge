@@ -1,332 +1,146 @@
 #!/usr/bin/env python3
-"""Count a short-story manuscript.
+"""Count a short-story manuscript: per-chapter length, dialogue ratio,
+and the cutoff-anchor share.
 
-Input format (strict, fail loudly on mismatch):
-  - Script input is always the cumulative manuscript (intro + all chapters
-    written so far), NOT a batch-only file. A batch-only file (e.g. only
-    chapters 5-8) must be counted with --start-chapter 5, or merged into
-    the cumulative file first.
-  - Optional title: a first line starting with '# ' is excluded from counts,
-    EXCEPT when that line is itself a chapter marker (e.g. '# 1' is a chapter,
-    not a title). Do NOT put a bare title on the first line; it will be
-    counted as intro.
-  - Intro: text before the first chapter marker, no title.
-  - Chapter markers, one per line, in increasing order, by default starting
-    at 1 (or at --start-chapter N for a batch file):
-      1
-      第1章 / 第一章 / 第1章 重逢 / 第1章重逢（章名与章号之间可无空格）
-      第 1 章
-      1. / 1. 重逢
-      1、
-      # 1 / # 1 重逢
-    A marker line's trailing chapter title is excluded from counts, like the
-    marker itself.
-    Anything else is body text, not a marker. In particular, a line like
-    "3 / 2 / 1" is NOT a marker, and a bare "3" that is not the next
-    expected chapter number is treated as body text with a warning,
-    not silently as a new chapter.
-
-Counting: Chinese characters and punctuation, excluding chapter-marker
-lines and blank lines / whitespace. Dialogue = characters inside “ ” or
-" " (straight quotes also count; formal manuscripts must use curved “ ”).
-A single quoted character is emphasis, not dialogue, unless it is an
-interjection (嗯/啊/哦/哎/呃/哈/咦). When straight quotes are detected,
-the script warns to convert them to curved quotes for the formal manuscript.
-Dialogue rule is per-batch: run a cumulative file with
---batch-from <first chapter of this batch> to get the batch ratio;
-the cumulative ratio alone must not be used for the batch rule.
+Input is the cumulative manuscript: intro, then chapters. Each chapter
+marker sits on its own line, numbered from 1 in order:
+  1 / 1. / 1、 / # 1 / 第1章 / 第一章 / 第1章 重逢
+A first line starting with '# ' that is not a marker is a title and is skipped.
+Counts include punctuation and exclude marker lines and whitespace.
 
 Usage:
-  python3 count_chapters.py <file.txt|file.md> [--anchor-chapter N]
-        [--start-chapter N]
-    --anchor-chapter N: the cutoff-anchor chapter. Its cumulative count is
-      intro + anchor chapter + all chapters before it; the cutoff point is
-      AFTER the anchor chapter, and the anchor chapter itself is included.
-      If that chapter is in the file, print that cumulative share and flag
-      whether it is in 35%-55%. If it is not in the file yet, print
-      "截断点尚未出现" instead of inventing a share.
-      IMPORTANT: this share is only a decision AFTER the whole draft is
-      finished. While drafting, the anchor chapter's share is necessarily
-      near 100% when it is first written and only falls as later chapters
-      are added, so a per-batch share must be ignored, not acted on.
-      During drafting, the anchor is defined by plot (irreversible choice /
-      core truth revealed / conflict escalation to a point of no return),
-      and its chapter number is a soft target on the state card, revisable.
-    --start-chapter N: first chapter number expected in the file (default 1).
-      Use it only for a batch-only file; the normal input is cumulative.
-
-Exit codes: 0 = counted, at least one chapter found; 2 = usage error
-or no chapter marker found (do NOT trust an intro-only count).
-Out-of-range chapters are flagged in the output; the script does not
-silently pass them.
+  python3 count_chapters.py 全文.txt [--batch-from N] [--anchor-chapter N --final]
 """
 import argparse
 import re
 import sys
 from pathlib import Path
 
-CHAPTER_MIN = 500
-CHAPTER_MAX = 1000
-INTRO_MIN = 60
-INTRO_MAX = 200
+CHAPTER_MIN, CHAPTER_MAX = 500, 1000
+INTRO_MIN, INTRO_MAX = 60, 200
+DIALOGUE_MIN = 0.15
+INTERJECTIONS = {"嗯", "啊", "哦", "哎", "呃", "哈", "咦"}
 
 MARKERS = [
     re.compile(r"^#\s*(\d+)(?:\s+.*)?$"),
-    re.compile(r"^第\s*(\d+)\s*章(?:.*)?$"),
+    re.compile(r"^第\s*(\d+)\s*章.*$"),
     re.compile(r"^(\d+)[\.、](?:\s+.*)?$"),
     re.compile(r"^(\d+)\s*$"),
 ]
+CN_MARKER = re.compile(r"^第\s*([一二三四五六七八九十]+)\s*章.*$")
+SUSPECTED = re.compile(r"^第.*章|^#\s*\d+|^\d+[\.、]")
+CN_DIGIT = {c: i for i, c in enumerate("一二三四五六七八九", start=1)}
 
-_CN_DIGIT = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
-             "六": 6, "七": 7, "八": 8, "九": 9}
 
-
-def cn_to_int(s: str):
-    """Chinese numeral up to 99, e.g. 一, 十, 十一, 二十, 二十一."""
-    if not s or any(c not in "一二三四五六七八九十" for c in s):
-        return None
+def cn_to_int(s):
+    """Chinese numeral up to 99: 一, 十, 十一, 二十一."""
     if "十" not in s:
-        return _CN_DIGIT[s] if len(s) == 1 else None
+        return CN_DIGIT.get(s)
     a, _, b = s.partition("十")
-    tens = _CN_DIGIT[a] if a else 1
-    ones = _CN_DIGIT[b] if b else 0
-    return tens * 10 + ones
+    if (a and a not in CN_DIGIT) or (b and b not in CN_DIGIT):
+        return None
+    return CN_DIGIT.get(a, 1) * 10 + CN_DIGIT.get(b, 0)
 
 
-def parse_marker(line: str):
+def parse_marker(line):
     s = line.strip()
     for pat in MARKERS:
         m = pat.match(s)
         if m:
             return int(m.group(1))
-    m = re.match(r"^第\s*([一二三四五六七八九十]+)\s*章(?:.*)?$", s)
-    if m:
-        return cn_to_int(m.group(1))
-    return None
+    m = CN_MARKER.match(s)
+    return cn_to_int(m.group(1)) if m else None
 
 
-def clean(text: str) -> str:
+def clean(text):
     return re.sub(r"\s+", "", text)
 
 
-def dialogue_chars(text: str) -> int:
-    # Dialogue quotes: curved “ ” and straight " " both count (manuscripts
-    # from some platforms use straight quotes). A quoted segment counts as
-    # dialogue only if it has at least 2 characters, or is a single-character
-    # interjection (嗯/啊/哦/哎/呃/哈/咦); a single quoted character like
-    # “沈” / “影” / “线” is treated as emphasis, not dialogue, so emphasis
-    # quotes do not inflate the dialogue ratio.
+def dialogue_chars(text):
+    # A single quoted character is emphasis, not dialogue, unless it is an interjection.
     total = 0
     for m in re.finditer(r'[“"]([^”"]+)[”"]', text):
         seg = clean(m.group(1))
-        if len(seg) >= 2 or seg in {"嗯", "啊", "哦", "哎", "呃", "哈", "咦"}:
+        if len(seg) >= 2 or seg in INTERJECTIONS:
             total += len(seg)
     return total
 
 
-def flag(count: int, lo: int, hi: int) -> str:
-    if count < lo:
-        return "低于范围-警告"
-    if count > hi:
-        return "超范围"
-    return "在范围内"
+def flag(n, lo, hi):
+    return "低于范围-警告" if n < lo else "超范围" if n > hi else "在范围内"
 
 
-def main() -> int:
+def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("file")
-    ap.add_argument("--anchor-chapter", type=int, default=None)
-    ap.add_argument("--start-chapter", type=int, default=1)
-    ap.add_argument("--final", action="store_true",
-                    help="only with --final is the cutoff share a verdict; "
-                    "without it, the share is a draft reference/forecast only")
-    ap.add_argument("--batch-from", type=int, default=None,
-                    help="first chapter of the current batch in a cumulative "
-                    "file; the script then reports the batch dialogue ratio "
-                    "separately from the cumulative ratio")
-    ap.add_argument("--soft-total-chapters", type=int, default=None,
-                    help="soft target total chapters for a forecast share; "
-                    "forecast = estimated anchor cumulative / "
-                    "(intro + soft total * average written chapter length)")
+    ap.add_argument("--batch-from", type=int, help="本批首章，输出本批对话占比")
+    ap.add_argument("--anchor-chapter", type=int, help="锚点章号")
+    ap.add_argument("--final", action="store_true", help="全篇写完后计算截断点占比")
     args = ap.parse_args()
 
     raw = Path(args.file).read_text(encoding="utf-8")
     lines = raw.splitlines()
-    # A '# ' first line is a title ONLY if it is not itself a chapter marker
-    # ('# 1' is a chapter, not a title).
     if lines and lines[0].strip().startswith("# ") and parse_marker(lines[0]) is None:
         lines = lines[1:]
-    while lines and not lines[0].strip():
-        lines = lines[1:]
 
-    sections = []
-    current_label = "引言"
-    buf: list[str] = []
-    expected = args.start_chapter
-    warnings: list[str] = []
-    suspected = re.compile(r"^第.*章|^#\s*\d+|^\d+[\.、]")
+    sections, label, buf, expected, warnings = [], "引言", [], 1, []
     for lineno, line in enumerate(lines, start=1):
         num = parse_marker(line)
-        if num is not None:
-            if num == expected:
-                sections.append((current_label, "\n".join(buf)))
-                current_label = str(num)
-                buf = []
-                expected += 1
-            else:
-                warnings.append(
-                    f"第 {lineno} 行“{line.strip()}”不是下一个章节号"
-                    f"（期望 {expected}），已当作正文处理；"
-                    f"请先检查前一章的章节行是否被识别为章节号"
-                )
-                buf.append(line)
-        else:
-            if suspected.match(line.strip()):
-                warnings.append(
-                    f"第 {lineno} 行疑似章节行“{line.strip()}”未被识别为章节号，"
-                    f"已当作正文处理；请检查格式（建议用“第N章 标题”带空格，"
-                    f"或纯数字章节号）"
-                )
-            buf.append(line)
-    sections.append((current_label, "\n".join(buf)))
+        if num == expected:
+            sections.append((label, "\n".join(buf)))
+            label, buf, expected = str(num), [], expected + 1
+            continue
+        if num is not None or SUSPECTED.match(line.strip()):
+            warnings.append(f"第 {lineno} 行“{line.strip()}”没有识别为第 {expected} 章，按正文计数")
+        buf.append(line)
+    sections.append((label, "\n".join(buf)))
     sections = [(l, t) for l, t in sections if clean(t)]
 
-    chapters = [(l, t) for l, t in sections if l != "引言"]
-    if not chapters:
-        print("错误：未识别到任何章节号，无法计数。", file=sys.stderr)
-        print(
-            "输入格式要求：引言在前，章节号单独一行，格式为 1、第1章、第一章、"
-            "第1章 重逢、1. 或 1、，且按顺序递增；正常输入是累计全文（从第 1 章"
-            "开始），只含后几章的批次文件请加 --start-chapter N；标题请用 '# ' "
-            "开头或不要放标题行（'# 1' 是章节号，不是标题）。",
-            file=sys.stderr,
-        )
+    if not any(l != "引言" for l, _ in sections):
+        print("错误：没有识别到章节号（第 1 章起，每个章节号单独一行）。", file=sys.stderr)
         return 2
 
-    rows = []
+    rows = []  # (label, chars, dialogue chars)
+    print(f"{'章节':>6} {'字数':>6} {'对话字数':>8} {'对话占比':>8}  范围")
     for label, text in sections:
-        total = len(clean(text))
-        dlg = dialogue_chars(text)
-        rows.append((label, total, dlg, dlg / total if total else 0))
-
-    print(f"{'章节':>6} {'字数':>6} {'对话字数':>8} {'对话占比':>8}  {'范围':>6}")
-    for label, total, dlg, ratio in rows:
-        if label == "引言":
-            f = flag(total, INTRO_MIN, INTRO_MAX)
-        else:
-            f = flag(total, CHAPTER_MIN, CHAPTER_MAX)
-        print(f"{label:>6} {total:>6} {dlg:>8} {ratio:>7.0%}  {f}")
-    for w in warnings[:10]:
+        total, dlg = len(clean(text)), dialogue_chars(text)
+        rows.append((label, total, dlg))
+        rng = flag(total, INTRO_MIN, INTRO_MAX) if label == "引言" else flag(total, CHAPTER_MIN, CHAPTER_MAX)
+        print(f"{label:>6} {total:>6} {dlg:>8} {dlg / total:>7.0%}  {rng}")
+    for w in warnings:
         print(f"警告：{w}")
     if '"' in raw:
-        print("警告：检测到直引号，正式稿请统一转成弯引号 “”。")
-    if len(warnings) > 10:
-        print(f"警告：另有 {len(warnings) - 10} 条同类警告已省略")
+        print("警告：检测到直引号，正式稿请改成弯引号 “”。")
 
-    counts = [r[1] for r in rows if r[0] != "引言"]
-    dlg_total = sum(r[2] for r in rows if r[0] != "引言")
-    below = sum(1 for c in counts if c < CHAPTER_MIN)
-    above = sum(1 for c in counts if c > CHAPTER_MAX)
-    print(
-        f"\n正文合计: {sum(counts)} 字, 章数: {len(counts)}, "
-        f"平均每章: {sum(counts) / len(counts):.1f} 字, "
-        f"最短: {min(counts)} 字, 最长: {max(counts)} 字, "
-        f"低于范围（警告）章数: {below}, 超范围章数: {above}"
-    )
-    if above:
-        print("超范围章必须拆章或重写，不能以写得好放行；1001 字也算超范围，没有宽限带。")
-    if counts:
-        ratio = dlg_total / sum(counts) if sum(counts) else 0
-        print(f"累计正文对话合计: {dlg_total} 字, 累计对话占比: {ratio:.1%}（仅参考，不是本批规则）")
-    # Batch dialogue ratio: the rule is per-batch, not cumulative. A batch
-    # with no dialogue must not hide behind earlier dialogue-heavy chapters,
-    # and an early dialogue-light batch must not drag later batches down.
-    batch_rows = None
+    chapters = [r for r in rows if r[0] != "引言"]
+    counts = [r[1] for r in chapters]
+    below = sum(c < CHAPTER_MIN for c in counts)
+    above = sum(c > CHAPTER_MAX for c in counts)
+    print(f"\n正文合计: {sum(counts)} 字, 章数: {len(counts)}, 平均每章: {sum(counts) / len(counts):.1f} 字, "
+          f"低于范围（警告）章数: {below}, 超范围章数: {above}")
+    dlg_total = sum(r[2] for r in chapters)
+    print(f"累计正文对话合计: {dlg_total} 字, 累计对话占比: {dlg_total / sum(counts):.1%}")
     if args.batch_from is not None:
-        batch_rows = [r for r in rows if r[0] != "引言" and int(r[0]) >= args.batch_from]
-    elif args.start_chapter != 1:
-        batch_rows = [r for r in rows if r[0] != "引言"]  # batch-only file
-    if batch_rows is not None:
-        b_total = sum(r[1] for r in batch_rows)
-        b_dlg = sum(r[2] for r in batch_rows)
+        batch = [r for r in chapters if int(r[0]) >= args.batch_from]
+        b_total, b_dlg = sum(r[1] for r in batch), sum(r[2] for r in batch)
         b_ratio = b_dlg / b_total if b_total else 0
         print(f"本批对话合计: {b_dlg} 字, 本批对话占比: {b_ratio:.1%}")
-        if b_ratio < 0.15:
-            print("警告：本批对话占比低于 15%，评审必须明确点名，不能直接放行。")
-    elif counts:
-        print("提示：本批对话占比需用 --batch-from <本批首章> 计算，只看累计占比会掩盖本批零对话。")
-    if rows:
-        print(f"全文合计（含引言）: {sum(r[1] for r in rows)} 字")
+        if b_ratio < DIALOGUE_MIN:
+            print("警告：本批对话占比低于 15%。")
+    total_all = sum(r[1] for r in rows)
+    print(f"全文合计（含引言）: {total_all} 字")
 
     if args.anchor_chapter is not None:
         labels = [r[0] for r in rows]
-        if args.start_chapter != 1:
-            print(
-                f"\n截断点：批次文件（从第 {args.start_chapter} 章开始）无法算全篇占比，"
-                "锚点比例需要累计全文，请对累计全文跑 --anchor-chapter，"
-                "此处不输出批次比例，避免误导。"
-            )
+        if not args.final:
+            print("\n截断点占比只在全篇写完后计算，请加 --final。")
         elif str(args.anchor_chapter) not in labels:
-            if args.soft_total_chapters and not args.final:
-                ch_counts0 = [r[1] for r in rows if r[0] != "引言"]
-                if args.soft_total_chapters < len(ch_counts0):
-                    print(
-                        f"\n警告：软目标总章数（{args.soft_total_chapters}）已小于已写章数"
-                        f"（{len(ch_counts0)}），软目标已失效，请先更新状态卡上的软目标区间，"
-                        "此处不输出预估占比。"
-                    )
-                else:
-                    print(
-                        f"\n截断点（草稿阶段）：锚点章节 {args.anchor_chapter} 尚未出现，"
-                        "此时预估占比约等于锚点章号 ÷ 软目标总章数，与稿子写得怎么样几乎无关，"
-                        "无信息量，不得作为评审第 2 项的通过依据；"
-                        "有信息量的预估从锚点章写完后开始（分子为实际锚点累计）。"
-                    )
-            else:
-                print(f"\n截断点：锚点章节 {args.anchor_chapter} 尚未出现，不计算比例。")
+            print(f"\n截断点：没有找到第 {args.anchor_chapter} 章。")
         else:
-            total_all = sum(r[1] for r in rows)
-            upto = 0
-            for label, total, _dlg, _ratio in rows:
-                upto += total
-                if label == str(args.anchor_chapter):
-                    break
-            if args.final:
-                share = upto / total_all if total_all else 0
-                status = "在 35%-55% 内" if 0.35 <= share <= 0.55 else "不在 35%-55% 内"
-                print(
-                    f"\n截断点（全篇写完，判定）：锚点章节 {args.anchor_chapter}，"
-                    f"锚点累计（含锚点章） {upto} 字，占全文 {share:.1%}，{status}。"
-                )
-            elif args.soft_total_chapters:
-                intro = next((r[1] for r in rows if r[0] == "引言"), 0)
-                ch_counts = [r[1] for r in rows if r[0] != "引言"]
-                if args.soft_total_chapters < len(ch_counts):
-                    print(
-                        f"\n警告：软目标总章数（{args.soft_total_chapters}）已小于已写章数"
-                        f"（{len(ch_counts)}），软目标已失效，请先更新状态卡上的软目标区间，"
-                        "此处不输出预估占比。"
-                    )
-                    return 0
-                # (fall through to forecast below)
-                avg = sum(ch_counts) / len(ch_counts) if ch_counts else 0
-                denom = intro + args.soft_total_chapters * avg
-                # numerator: actual if anchor written (it is, here), else estimate
-                forecast = upto / denom if denom else 0
-                print(
-                    f"\n截断点（草稿阶段，预估，非判定）：锚点章节 {args.anchor_chapter}，"
-                    f"锚点累计（含锚点章） {upto} 字，预估全篇约 {denom:.0f} 字"
-                    f"（引言 + 软目标 {args.soft_total_chapters} 章 × 平均章长 {avg:.0f} 字），"
-                    f"预估占比 {forecast:.1%}；预估偏离 35%-55% 时只作提前预警，"
-                    "不要按它改已评审的批次，判定只在全篇写完后用 --final 做。"
-                )
-            else:
-                share = upto / total_all if total_all else 0
-                print(
-                    f"\n截断点（草稿阶段，仅参考，不判定）：锚点章节 {args.anchor_chapter}，"
-                    f"锚点累计（含锚点章） {upto} 字，占已写部分 {share:.1%}；"
-                    "锚点刚写完时这个数字必然接近 100%，请忽略，不要照着改。"
-                )
+            upto = sum(r[1] for r in rows[: labels.index(str(args.anchor_chapter)) + 1])
+            share = upto / total_all
+            status = "在 35%-55% 内" if 0.35 <= share <= 0.55 else "不在 35%-55% 内"
+            print(f"\n截断点：锚点累计（引言到第 {args.anchor_chapter} 章） {upto} 字，占全文 {share:.1%}，{status}。")
     return 0
 
 
