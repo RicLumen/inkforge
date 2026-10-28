@@ -2,16 +2,25 @@
 """Count a short-story manuscript.
 
 Input format (strict, fail loudly on mismatch):
-  - Optional title: a first line starting with '# ' is excluded from counts.
-    Do NOT put a bare title on the first line; it will be counted as intro.
+  - Script input is always the cumulative manuscript (intro + all chapters
+    written so far), NOT a batch-only file. A batch-only file (e.g. only
+    chapters 5-8) must be counted with --start-chapter 5, or merged into
+    the cumulative file first.
+  - Optional title: a first line starting with '# ' is excluded from counts,
+    EXCEPT when that line is itself a chapter marker (e.g. '# 1' is a chapter,
+    not a title). Do NOT put a bare title on the first line; it will be
+    counted as intro.
   - Intro: text before the first chapter marker, no title.
-  - Chapter markers, one per line, in increasing order starting at 1:
+  - Chapter markers, one per line, in increasing order, by default starting
+    at 1 (or at --start-chapter N for a batch file):
       1
-      第1章 / 第一章
+      第1章 / 第一章 / 第1章 重逢 / 第一章 重逢
       第 1 章
-      1.
+      1. / 1. 重逢
       1、
-      # 1
+      # 1 / # 1 重逢
+    A marker line's trailing chapter title is excluded from counts, like the
+    marker itself.
     Anything else is body text, not a marker. In particular, a line like
     "3 / 2 / 1" is NOT a marker, and a bare "3" that is not the next
     expected chapter number is treated as body text with a warning,
@@ -22,17 +31,22 @@ lines and blank lines / whitespace. Dialogue = characters inside “ ”.
 
 Usage:
   python3 count_chapters.py <file.txt|file.md> [--anchor-chapter N]
-    --anchor-chapter N: the cutoff-anchor chapter. If that chapter is in
-      the file, print its cumulative words up to and including it as a
-      share of the full text, and flag whether it is in 35%-55%.
-      If it is not in the file yet, print "截断点尚未出现" instead of
-      inventing a share. During drafting, the anchor is defined by plot
-      (irreversible choice / core truth revealed / conflict escalation
-      to a point of no return), not by guessing a final total; the
-      script only checks the share once the draft (or the anchor
-      chapter) exists. There is no estimated-total parameter, because
-      a final total that is not decided yet cannot be estimated by
-      the script.
+        [--start-chapter N]
+    --anchor-chapter N: the cutoff-anchor chapter. Its cumulative count is
+      intro + anchor chapter + all chapters before it; the cutoff point is
+      AFTER the anchor chapter, and the anchor chapter itself is included.
+      If that chapter is in the file, print that cumulative share and flag
+      whether it is in 35%-55%. If it is not in the file yet, print
+      "截断点尚未出现" instead of inventing a share.
+      IMPORTANT: this share is only a decision AFTER the whole draft is
+      finished. While drafting, the anchor chapter's share is necessarily
+      near 100% when it is first written and only falls as later chapters
+      are added, so a per-batch share must be ignored, not acted on.
+      During drafting, the anchor is defined by plot (irreversible choice /
+      core truth revealed / conflict escalation to a point of no return),
+      and its chapter number is a soft target on the state card, revisable.
+    --start-chapter N: first chapter number expected in the file (default 1).
+      Use it only for a batch-only file; the normal input is cumulative.
 
 Exit codes: 0 = counted, at least one chapter found; 2 = usage error
 or no chapter marker found (do NOT trust an intro-only count).
@@ -50,9 +64,9 @@ INTRO_MIN = 60
 INTRO_MAX = 200
 
 MARKERS = [
-    re.compile(r"^#\s*(\d+)\s*$"),
-    re.compile(r"^第\s*(\d+)\s*章\s*$"),
-    re.compile(r"^(\d+)[\.、]\s*$"),
+    re.compile(r"^#\s*(\d+)(?:\s+.*)?$"),
+    re.compile(r"^第\s*(\d+)\s*章(?:\s.*)?$"),
+    re.compile(r"^(\d+)[\.、](?:\s+.*)?$"),
     re.compile(r"^(\d+)\s*$"),
 ]
 
@@ -78,7 +92,7 @@ def parse_marker(line: str):
         m = pat.match(s)
         if m:
             return int(m.group(1))
-    m = re.match(r"^第\s*([一二三四五六七八九十]+)\s*章\s*$", s)
+    m = re.match(r"^第\s*([一二三四五六七八九十]+)\s*章(?:\s.*)?$", s)
     if m:
         return cn_to_int(m.group(1))
     return None
@@ -105,11 +119,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("file")
     ap.add_argument("--anchor-chapter", type=int, default=None)
+    ap.add_argument("--start-chapter", type=int, default=1)
     args = ap.parse_args()
 
     raw = Path(args.file).read_text(encoding="utf-8")
     lines = raw.splitlines()
-    if lines and lines[0].strip().startswith("# "):
+    # A '# ' first line is a title ONLY if it is not itself a chapter marker
+    # ('# 1' is a chapter, not a title).
+    if lines and lines[0].strip().startswith("# ") and parse_marker(lines[0]) is None:
         lines = lines[1:]
     while lines and not lines[0].strip():
         lines = lines[1:]
@@ -117,7 +134,7 @@ def main() -> int:
     sections = []
     current_label = "引言"
     buf: list[str] = []
-    expected = 1
+    expected = args.start_chapter
     warnings: list[str] = []
     for lineno, line in enumerate(lines, start=1):
         num = parse_marker(line)
@@ -142,8 +159,10 @@ def main() -> int:
     if not chapters:
         print("错误：未识别到任何章节号，无法计数。", file=sys.stderr)
         print(
-            "输入格式要求：引言在前，章节号单独一行，格式为 1、第1章、第一章、1. 或 1、，"
-            "且从 1 开始按顺序递增；标题请用 '# ' 开头或不要放标题行。",
+            "输入格式要求：引言在前，章节号单独一行，格式为 1、第1章、第一章、"
+            "第1章 重逢、1. 或 1、，且按顺序递增；正常输入是累计全文（从第 1 章"
+            "开始），只含后几章的批次文件请加 --start-chapter N；标题请用 '# ' "
+            "开头或不要放标题行（'# 1' 是章节号，不是标题）。",
             file=sys.stderr,
         )
         return 2
@@ -195,8 +214,8 @@ def main() -> int:
                 f"锚点前累计 {upto} 字，占全文 {share:.1%}，{status}。"
             )
             print(
-                "注意：全篇未写完时，这个比例只是已写部分的比例，"
-                "最终判定以全篇写完后的计算为准。"
+                "注意：截断点判定只在全篇写完后做。未写完时这个比例只是已写部分"
+                "的比例，锚点刚写完时必然接近 100%，逐批的数字一律忽略。"
             )
     return 0
 
