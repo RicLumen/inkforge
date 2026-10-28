@@ -13,6 +13,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Documentation pointer check
-        run: python3 short-story-skill/scripts/check_pointers.py
+        run: python3 dev/check_pointers.py
       - name: Counting script regression tests
-        run: python3 short-story-skill/scripts/test_count_chapters.py
+        run: python3 dev/test_count_chapters.py

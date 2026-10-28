@@ -13,8 +13,10 @@ four blind spots, each reproduced here as a check:
   4. Number check was presence-only -> role prompts must contain the
      same chapter numbers found in SKILL.md, and conceiver.md is covered.
 
-Usage: python3 scripts/check_pointers.py [--root <skill-dir>]
-  Default root is the skill directory containing this script's parent.
+Usage: python3 dev/check_pointers.py [--root <skill-dir>]
+  Run from the repo root. Default root is the short-story-skill
+  directory next to dev/ (this script used to live in
+  short-story-skill/scripts/, where parent.parent was the skill dir).
   CHANGELOG.md is excluded: it is history, and may mention sections
   that existed at the time of writing. Exit 1 on any failure.
 """
@@ -99,7 +101,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=None)
     args = ap.parse_args()
-    root = Path(args.root) if args.root else Path(__file__).resolve().parent.parent
+    if args.root:
+        root = Path(args.root)
+    else:
+        here = Path(__file__).resolve().parent
+        root = here.parent if (here.parent / "SKILL.md").exists() else here.parent / "short-story-skill"
     failures = []
     skill = root / "SKILL.md"
     if not skill.exists():

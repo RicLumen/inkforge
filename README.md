@@ -1,7 +1,7 @@
 # ✍️ InkForge — AI 短篇小说方法 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前版本：v0.9.3。
+> 当前版本：v1.0.0。
 > 欢迎试用并反馈，作者示例栈、发布平台与脱敏示例仍在补齐中。
 
 <p align="center">
@@ -29,8 +29,10 @@ AI 不擅长预先定死最终字数，往往写完才能确定篇幅，因此�
 - `short-story-skill/SKILL.md`：流程与索引——三线程分工、批次推进、循环与终止规则，细则只写指针，不展开。
 - `short-story-skill/references/`：细则——软目标排锚点、字数计数办法、补字数规则、对话软警告、全篇状态卡核对、八项量表、状态卡、拒稿清单。
 - `short-story-skill/prompts/`：写作、评审、构思角色提示词与骨架，关键数字为独立会话重复。
-- `short-story-skill/scripts/`：计数脚本、文档自检脚本、计数脚本回归测试。
-- `.github/workflows/check.yml`：每次推送自动跑文档自检与计数回归测试。
+- `short-story-skill/scripts/count_chapters.py`：计数脚本，运行必需。
+- `dev/`：本地开发文件，不进安装包——文档自检、计数回归测试、试跑记录。
+- `CHANGELOG.md`：历史口径变更，仓库级记录。
+- `.github/workflows/check.yml`：每次推送自动跑 `dev/` 里的自检与回归测试。
 
 ## 快速开始
 
@@ -53,15 +55,18 @@ Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中�
 
 ```
 inkforge/
-├── .github/workflows/check.yml   # 推送时自动跑文档自检与计数回归测试
-├── docs/test-run-01.md           # 第一次试跑记录（仅第一批，助理编造梗概，非作者作品）
-└── short-story-skill/
+├── .github/workflows/check.yml   # 推送时自动跑 dev/ 自检与计数回归测试
+├── CHANGELOG.md                  # 历史口径变更
+├── dev/                          # 本地开发文件，不安装到用户电脑
+│   ├── check_pointers.py         # 文档自检
+│   ├── test_count_chapters.py    # 计数回归测试
+│   └── test-run-01.md            # 第一次试跑记录（仅第一批，助理编造梗概，非作者作品）
+└── short-story-skill/            # 安装包，只含运行文件
     ├── SKILL.md                  # 流程与索引
     ├── skill.yaml                # skill 元数据
     ├── prompts/                  # 写作 / 评审 / 构思角色提示词与骨架
-    ├── scripts/                  # 计数脚本、自检脚本、回归测试
-    ├── CHANGELOG.md              # 历史口径变更
-    └── references/               # 细则：软目标、计数、补字数、对话警告、最终核对、量表等
+    ├── references/               # 细则：软目标、计数、补字数、对话警告、最终核对、量表等
+    └── scripts/count_chapters.py # 计数脚本
 ```
 
 ## 常见拒稿点
@@ -71,7 +76,7 @@ inkforge/
 
 ## 状态与待填
 
-本仓库当前为 v0.9.3，核心流程可用，尚未发布完整示例。
+本仓库当前为 v1.0.0，核心流程可用，尚未发布完整示例。
 
 待补清单（只是示例，空着不阻塞流程）：作者示例 AI 与档位、润色用的 skill、实测过的发布平台、脱敏示例。示例不会放真实在连载作品全文，收入证明只会脱敏展示。
 

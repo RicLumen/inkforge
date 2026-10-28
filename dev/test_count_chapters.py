@@ -5,7 +5,7 @@ These are the samples reviewers used across v0.4-v0.8, frozen so a future
 script change cannot silently break a branch. No story text is tested
 here; every sample is invented for the test itself.
 
-Run: python3 scripts/test_count_chapters.py
+Run from the repo root: python3 dev/test_count_chapters.py
 """
 import subprocess
 import sys
@@ -13,7 +13,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parent / "count_chapters.py"
+_here = Path(__file__).resolve().parent
+SCRIPT = _here / "count_chapters.py"
+if not SCRIPT.exists():
+    SCRIPT = _here.parent / "short-story-skill/scripts/count_chapters.py"
 
 
 def run(text, args=()):

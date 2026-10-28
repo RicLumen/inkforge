@@ -2,6 +2,23 @@
 
 历史口径变更记录，不参与执行，执行以 SKILL.md 为准。版本按从新到旧排列。
 
+## v1.0.0（2026-10-29，大清理，规则不变）
+
+- 安装包与开发文件彻底分开，像正常开发那样：本地的东西不再进提交给用户的 skill。
+  `short-story-skill/` 现在只剩 19 个运行文件——SKILL.md、skill.yaml、prompts/ 4 个、
+  references/ 12 个、scripts/count_chapters.py，复制整个文件夹安装就是干净的。
+- 移出 skill 文件夹的东西：文档自检 `check_pointers.py`、计数回归测试
+  `test_count_chapters.py`、试跑记录 `test-run-01.md` 全部移到仓库根目录的 `dev/`；
+  历史记录 `CHANGELOG.md` 移到仓库根目录，改为仓库级记录；skill 文件夹里单独的
+  README.md 删除，内容本来就和根 README 重复。
+- 跟着改的路径：自检脚本默认找它旁边的 `short-story-skill/`，测试脚本找
+  `short-story-skill/scripts/count_chapters.py`，CI 改跑 `dev/` 里的两项；
+  SKILL 里那句让用户跑自检的话删了，自检是维护者的事，不写进用户用的 skill；
+  根 README 的结构说明和目录树按新布局重写，快速开始的复制命令不用改，
+  现在复制过去的本来就是干净的。
+- 规则本身一个字没动：适用范围、拒稿清单默认启用、截断点、字数上下限全部沿用 v0.9.4。
+
+
 ## v0.9.4（2026-10-29，用户三条决定，规则有变）
 
 - 适用范围不再限定付费：是否是付费小说不是本项目决定的，写给自己看也可以用。SKILL 前言、适用范围、skill.yaml、两份 README 的“中文付费短篇”一律改成“中文短篇”；截断点规则本身不变，全篇 35%-55% 照常核对，发付费平台时它就是付费截断点。`references/submission-body-rules.md` 是投稿指南背景转述，原文就是付费平台规则，那一处保留原样，不作执行前提。
