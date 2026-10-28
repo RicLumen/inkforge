@@ -17,7 +17,7 @@ Usage: python3 dev/check_pointers.py [--root <skill-dir>]
   Run from the repo root. Default root is the short-story-skill
   directory next to dev/ (this script used to live in
   short-story-skill/scripts/, where parent.parent was the skill dir).
-  CHANGELOG.md is excluded: it is history, and may mention sections
+  A CHANGELOG.md, if one is ever added back, is excluded: it is history, and may mention sections
   that existed at the time of writing. Exit 1 on any failure.
 """
 import argparse

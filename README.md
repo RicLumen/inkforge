@@ -1,7 +1,7 @@
 # ✍️ InkForge — AI 短篇小说写作 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前版本：v1.0.6。
+> 当前版本：v1.0.7。
 > 欢迎试用并反馈，作者示例栈、发布平台与脱敏示例仍在补齐中。
 
 <p align="center">
@@ -31,7 +31,6 @@ AI 不擅长预先定死最终字数，往往写完才能确定篇幅，因此�
 - `short-story-skill/prompts/`：写作、评审、构思角色提示词与骨架，关键数字为独立会话重复。
 - `short-story-skill/scripts/count_chapters.py`：计数脚本，运行必需。
 - `dev/`：本地开发文件，不进安装包——文档自检、计数回归测试、试跑记录。
-- `CHANGELOG.md`：历史口径变更，仓库级记录。
 - `.github/workflows/check.yml`：每次推送自动跑 `dev/` 里的自检与回归测试。
 
 ## 快速开始
@@ -52,7 +51,6 @@ npx skills add RicLumen/inkforge --skill short-story-skill
 ```
 inkforge/
 ├── .github/workflows/check.yml   # 推送时自动跑 dev/ 自检与计数回归测试
-├── CHANGELOG.md                  # 历史口径变更
 ├── dev/                          # 本地开发文件，不安装到用户电脑
 │   ├── check_pointers.py         # 文档自检
 │   ├── test_count_chapters.py    # 计数回归测试
@@ -71,7 +69,7 @@ inkforge/
 
 ## 状态与待填
 
-本仓库当前为 v1.0.6，核心流程可用，尚未发布完整示例。
+本仓库当前为 v1.0.7，核心流程可用，尚未发布完整示例。
 
 待补清单（只是示例，空着不阻塞流程）：作者示例 AI 与档位、润色用的 skill、实测过的发布平台、脱敏示例。示例不会放真实在连载作品全文，收入证明只会脱敏展示。
 
