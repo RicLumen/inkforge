@@ -2,6 +2,13 @@
 
 历史口径变更记录，不参与执行，执行以 SKILL.md 为准。版本按从新到旧排列。
 
+## v0.9.1（2026-10-28，语言润色，规则不变）
+
+- 全部 19 个文档（SKILL.md、两份 README、4 份角色提示词、12 份 references）经 agy gemini-3.8-flash-low + humanizer-zh 润色，只改表达，不改规则：标题、列表顺序、所有数字（500、1000、15%、35%-55%、±10% 等）、文件路径、代码原样保留；“必须”类表述多改写为同等强制程度的“须”，经逐条核对未软化为建议；两份 README 里被改写的循环出口表述已恢复为“不用再改”原话。
+- 不在本次润色范围：CHANGELOG.md（历史记录）、scripts（代码）、docs/test-run-01.md（试跑记录原样保留）。
+- 润色后自检与回归测试全部通过：check_pointers.py（18 个文档文件）与 test_count_chapters.py（9 例）。
+
+
 ## v0.9（2026-10-28）
 
 - SKILL.md 拆分：SKILL.md 从约 20.7 KB 缩到约 15.6 KB，只留流程与索引（不设两档、核心正文规则、细则索引、三线程分工、批次推进、循环与终止、开始前确认、发布与复盘）；软目标排锚点、字数计数办法、补字数规则、对话软警告、全篇状态卡核对移入 `references/soft-target.md`、`counting.md`、`padding-rules.md`、`dialogue-warning.md`、`final-audit.md`，锚点唯一完整定义仍留在 SKILL.md 正文规则里，不随细则移走；常见拒稿点五条正文改成指向 `references/rejection-checklist.md` 的指针，只留开局可选规则。
