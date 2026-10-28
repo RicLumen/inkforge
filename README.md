@@ -1,7 +1,7 @@
 # ✍️ InkForge — AI 短篇小说方法 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前版本：v1.0.0。
+> 当前版本：v1.0.1。
 > 欢迎试用并反馈，作者示例栈、发布平台与脱敏示例仍在补齐中。
 
 <p align="center">
@@ -36,11 +36,14 @@ AI 不擅长预先定死最终字数，往往写完才能确定篇幅，因此�
 
 ## 快速开始
 
-安装到本机，一次即可：
+不用 git clone，只下载 skill 文件夹（19 个运行文件，不含 dev/，没有 .git）：
 
 ```
-git clone https://github.com/RicLumen/inkforge
-cp -r inkforge/short-story-skill ~/.claude/skills/  # Claude Code；Muse 放到 ~/workspace/custom-skills/
+# Claude Code 等：用 skills CLI，只装这一个 skill
+npx skills add RicLumen/inkforge --skill short-story-skill
+
+# Muse：用 degit 拉 tar 包，只取 short-story-skill/ 文件夹
+npx -y degit RicLumen/inkforge/short-story-skill ~/workspace/custom-skills/short-story-skill
 ```
 
 装好后直接用命令开写，把【你的剧情】换成你的剧情：
@@ -76,7 +79,7 @@ inkforge/
 
 ## 状态与待填
 
-本仓库当前为 v1.0.0，核心流程可用，尚未发布完整示例。
+本仓库当前为 v1.0.1，核心流程可用，尚未发布完整示例。
 
 待补清单（只是示例，空着不阻塞流程）：作者示例 AI 与档位、润色用的 skill、实测过的发布平台、脱敏示例。示例不会放真实在连载作品全文，收入证明只会脱敏展示。
 

@@ -2,6 +2,21 @@
 
 历史口径变更记录，不参与执行，执行以 SKILL.md 为准。版本按从新到旧排列。
 
+## v1.0.1（2026-10-29，安装方式改成无 clone，规则不变）
+
+- 参考大型 skill 项目的做法，快速开始不再用 `git clone`：大项目基本不让用户
+  clone 整个仓库，而是用包管理器或 tar 包只取 skill 文件夹。Claude Code 官方
+  anthropics/skills 用插件市场（`/plugin marketplace add` 再 `/plugin install`），
+  Vercel Labs / antfu 的 `skills` CLI 用 GitHub 当注册表，只装指定的 skill；
+  degit 则是直接下载 tar 包，不带 .git，也支持只取子目录。
+- 本仓库实测通过两种无 clone 装法，都只落 19 个运行文件：`npx skills add
+  RicLumen/inkforge --skill short-story-skill`（装到 agent 的 skills 目录，
+  另生成 skills-lock.json），以及 `npx -y degit RicLumen/inkforge/short-story-skill
+  <目标目录>`（tar 包下载，无 .git、无 dev/）。README 快速开始改成这两条，
+  原来的 clone + 复制整节删除。插件市场那条暂未做，要做需另加
+  `.claude-plugin/marketplace.json` 与插件包装，不在这次范围里。
+
+
 ## v1.0.0（2026-10-29，大清理，规则不变）
 
 - 安装包与开发文件彻底分开，像正常开发那样：本地的东西不再进提交给用户的 skill。
