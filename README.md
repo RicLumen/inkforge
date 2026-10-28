@@ -1,12 +1,12 @@
-# ✍️ InkForge — AI 短篇小说写作 Skill
+# ✍️ InkForge — AI 短篇网文写作 Skill
 
 <p align="center">
-  <img src="https://img.shields.io/badge/版本-v1.0.10-blue" alt="版本" />
-  <img src="https://img.shields.io/badge/定位-中文短篇小说-brightgreen" alt="定位" />
+  <img src="https://img.shields.io/badge/版本-v1.0.11-blue" alt="版本" />
+  <img src="https://img.shields.io/badge/定位-中文短篇网文-brightgreen" alt="定位" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License" />
 </p>
 
-InkForge 是一个中文短篇小说写作 skill，题材由你定。
+InkForge 是一个中文短篇网文写作 skill，题材由你定。
 
 ## 怎么写
 
@@ -23,7 +23,7 @@ InkForge 是一个中文短篇小说写作 skill，题材由你定。
 
 - 动笔前不定总字数，写完再看篇幅。
 - 引言约 150 字，单章 500–1000 字，每章结尾留钩子。
-- 截断点在锚点章之后，全篇写完后应在全文 35%–55%。
+- 截断点在锚点章之后，全篇写完后应在全文 35%–55%，也就是付费卡点。
 - 本批对话占比低于 15% 时，评审会点出来。
 
 完整规则见 `short-story-skill/SKILL.md`。
