@@ -30,7 +30,8 @@ Counting: Chinese characters and punctuation, excluding chapter-marker
 lines and blank lines / whitespace. Dialogue = characters inside “ ” or
 " " (straight quotes also count; formal manuscripts must use curved “ ”).
 A single quoted character is emphasis, not dialogue, unless it is an
-interjection (嗯/啊/哦/哎/呃/哈/咦).
+interjection (嗯/啊/哦/哎/呃/哈/咦). When straight quotes are detected,
+the script warns to convert them to curved quotes for the formal manuscript.
 Dialogue rule is per-batch: run a cumulative file with
 --batch-from <first chapter of this batch> to get the batch ratio;
 the cumulative ratio alone must not be used for the batch rule.
@@ -217,6 +218,8 @@ def main() -> int:
         print(f"{label:>6} {total:>6} {dlg:>8} {ratio:>7.0%}  {f}")
     for w in warnings[:10]:
         print(f"警告：{w}")
+    if '"' in raw:
+        print("警告：检测到直引号，正式稿请统一转成弯引号 “”。")
     if len(warnings) > 10:
         print(f"警告：另有 {len(warnings) - 10} 条同类警告已省略")
 
