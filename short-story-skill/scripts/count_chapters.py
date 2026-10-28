@@ -27,7 +27,13 @@ Input format (strict, fail loudly on mismatch):
     not silently as a new chapter.
 
 Counting: Chinese characters and punctuation, excluding chapter-marker
-lines and blank lines / whitespace. Dialogue = characters inside “ ”.
+lines and blank lines / whitespace. Dialogue = characters inside “ ” or
+" " (straight quotes also count; formal manuscripts must use curved “ ”).
+A single quoted character is emphasis, not dialogue, unless it is an
+interjection (嗯/啊/哦/哎/呃/哈/咦).
+Dialogue rule is per-batch: run a cumulative file with
+--batch-from <first chapter of this batch> to get the batch ratio;
+the cumulative ratio alone must not be used for the batch rule.
 
 Usage:
   python3 count_chapters.py <file.txt|file.md> [--anchor-chapter N]
@@ -103,8 +109,18 @@ def clean(text: str) -> str:
 
 
 def dialogue_chars(text: str) -> int:
-    parts = re.findall(r"“([^”]*)”", text)
-    return sum(len(clean(p)) for p in parts)
+    # Dialogue quotes: curved “ ” and straight " " both count (manuscripts
+    # from some platforms use straight quotes). A quoted segment counts as
+    # dialogue only if it has at least 2 characters, or is a single-character
+    # interjection (嗯/啊/哦/哎/呃/哈/咦); a single quoted character like
+    # “沈” / “影” / “线” is treated as emphasis, not dialogue, so emphasis
+    # quotes do not inflate the dialogue ratio.
+    total = 0
+    for m in re.finditer(r'[“"]([^”"]+)[”"]', text):
+        seg = clean(m.group(1))
+        if len(seg) >= 2 or seg in {"嗯", "啊", "哦", "哎", "呃", "哈", "咦"}:
+            total += len(seg)
+    return total
 
 
 def flag(count: int, lo: int, hi: int) -> str:
@@ -123,6 +139,10 @@ def main() -> int:
     ap.add_argument("--final", action="store_true",
                     help="only with --final is the cutoff share a verdict; "
                     "without it, the share is a draft reference/forecast only")
+    ap.add_argument("--batch-from", type=int, default=None,
+                    help="first chapter of the current batch in a cumulative "
+                    "file; the script then reports the batch dialogue ratio "
+                    "separately from the cumulative ratio")
     ap.add_argument("--soft-total-chapters", type=int, default=None,
                     help="soft target total chapters for a forecast share; "
                     "forecast = estimated anchor cumulative / "
@@ -210,11 +230,28 @@ def main() -> int:
         f"最短: {min(counts)} 字, 最长: {max(counts)} 字, "
         f"低于范围（警告）章数: {below}, 超范围章数: {above}"
     )
+    if above:
+        print("超范围章必须拆章或重写，不能以写得好放行；1001 字也算超范围，没有宽限带。")
     if counts:
         ratio = dlg_total / sum(counts) if sum(counts) else 0
-        print(f"正文对话合计: {dlg_total} 字, 对话占比: {ratio:.1%}")
-        if ratio < 0.15:
-            print("警告：正文对话占比低于 15%，评审必须明确点名，不能直接放行。")
+        print(f"累计正文对话合计: {dlg_total} 字, 累计对话占比: {ratio:.1%}（仅参考，不是本批规则）")
+    # Batch dialogue ratio: the rule is per-batch, not cumulative. A batch
+    # with no dialogue must not hide behind earlier dialogue-heavy chapters,
+    # and an early dialogue-light batch must not drag later batches down.
+    batch_rows = None
+    if args.batch_from is not None:
+        batch_rows = [r for r in rows if r[0] != "引言" and int(r[0]) >= args.batch_from]
+    elif args.start_chapter != 1:
+        batch_rows = [r for r in rows if r[0] != "引言"]  # batch-only file
+    if batch_rows is not None:
+        b_total = sum(r[1] for r in batch_rows)
+        b_dlg = sum(r[2] for r in batch_rows)
+        b_ratio = b_dlg / b_total if b_total else 0
+        print(f"本批对话合计: {b_dlg} 字, 本批对话占比: {b_ratio:.1%}")
+        if b_ratio < 0.15:
+            print("警告：本批对话占比低于 15%，评审必须明确点名，不能直接放行。")
+    elif counts:
+        print("提示：本批对话占比需用 --batch-from <本批首章> 计算，只看累计占比会掩盖本批零对话。")
     if rows:
         print(f"全文合计（含引言）: {sum(r[1] for r in rows)} 字")
 
