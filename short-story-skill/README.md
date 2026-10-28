@@ -43,11 +43,15 @@ short-story-skill/
 
 ## 怎么用
 
-把整个 `short-story-skill` 文件夹放进所用 AI 工具的 skills 目录，或在对话中直接把 `SKILL.md` 和三份角色提示词发给 AI。接着给出剧情方向，让它按批次运行三线程，不要先让它定死最终字数和档位。
+复制下面这句话发给你的 AI，把【你的剧情】换成你的剧情：
 
-skill 本身是 Markdown 流程，平台即使不支持原生安装，也可以直接按文档执行。SKILL.md 只保留流程与索引，细则在 `references/` 中，执行时照流程走、查阅对应细则。字数必须以 `scripts/count_chapters.py` 的统计为准：写作每批把累计全文输入脚本，评审核对章数与输出；缺少代码环境时，让用户在本地运行脚本并贴回输出，无法运行时评审必须注明“未跑脚本，仅人工估算”。修改文档后运行 `python3 scripts/check_pointers.py` 与 `python3 scripts/test_count_chapters.py`，两项通过后才能推送；仓库的 GitHub Actions 也会在每次推送时自动运行这两项。`SKILL.md` 开头的 YAML frontmatter 供 Claude 识别，`skill.yaml` 供 Muse 识别。
+```
+请使用 https://github.com/RicLumen/inkforge 里的 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】
+```
 
-## 作者示例清单（示例，不是使用前提，空着不阻塞流程）
+维护：改文档后跑 `python3 scripts/check_pointers.py` 与 `python3 scripts/test_count_chapters.py`，两项通过才能推。
+
+## 作者示例清单（只是示例，空着不阻塞流程）
 
 - 生成 AI：模型名、档位、为什么选它
 - 润色 / 去 AI 味 skill：名字、用在哪个环节、哪一步必须人工过
