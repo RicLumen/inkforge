@@ -2,6 +2,13 @@
 
 历史口径变更记录，不参与执行，执行以 SKILL.md 为准。版本按从新到旧排列。
 
+## v0.9.4（2026-10-29，用户三条决定，规则有变）
+
+- 适用范围不再限定付费：是否是付费小说不是本项目决定的，写给自己看也可以用。SKILL 前言、适用范围、skill.yaml、两份 README 的“中文付费短篇”一律改成“中文短篇”；截断点规则本身不变，全篇 35%-55% 照常核对，发付费平台时它就是付费截断点。`references/submission-body-rules.md` 是投稿指南背景转述，原文就是付费平台规则，那一处保留原样，不作执行前提。
+- 常见拒稿点清单改成默认启用，不再开局询问：SKILL 正文规则、细则索引、开始前确认清单、`references/rejection-checklist.md`、`references/reviewer-rubric.md`、`references/state-card.md` 里的“开局可选 / 是否启用 / 不启用时只评八项”一律改成默认启用，任一项未达标即不予通过；状态卡里不再填启用与否。
+- 签约编辑专属条款不再写进 README：根 README 已由用户删掉，skill README 边界里“签约编辑专属的题材偏好、保底条件和审稿时效不作为通用标准”一句同步删除；不是每个人都会签约，不做的事不在 README 里解释。
+
+
 ## v0.9.3（2026-10-28，快速开始改成本地安装，规则不变）
 
 - 快速开始从“发仓库链接给 AI”改成本地安装 + 命令使用：`git clone` 后把 `short-story-skill` 复制到工具的 skills 目录（Claude Code 是 `~/.claude/skills/`，Muse 是 `~/workspace/custom-skills/`），装好后用 `/short-story-skill 剧情：【你的剧情】` 开写；Muse 没有斜杠命令时用自然语言那句，效果一样。仓库链接句降为不能安装的网页对话的备用，不再是主入口。

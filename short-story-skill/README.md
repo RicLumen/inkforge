@@ -1,6 +1,6 @@
 # short-story-skill
 
-用评审、写作、构思三线程循环写中文付费短篇的 skill。篇幅与章节规格按 SKILL.md 正文规则执行，不设两档；不适用于英文短篇和纯文学短篇。
+用评审、写作、构思三线程循环写中文短篇的 skill。篇幅与章节规格按 SKILL.md 正文规则执行，不设两档；不适用于英文短篇和纯文学短篇。
 
 ## 这个 skill 是什么
 
@@ -12,7 +12,7 @@
 
 ## 规格速览（只作入口，不作执行依据）
 
-执行依据只有 SKILL.md 及其细则索引里的文件，本节不重复数字，避免两处漂移：引言与单章篇幅、每章钩子、付费截断点位置、情绪基调、视角、节奏、标点与规范用字，见 SKILL.md“正文规则”；软目标排锚点、字数计数办法、补字数规则、对话软警告、全篇状态卡核对，见 SKILL.md“细则索引”指向的 `references/` 文件。历史口径变更见 CHANGELOG.md。
+执行依据只有 SKILL.md 及其细则索引里的文件，本节不重复数字，避免两处漂移：引言与单章篇幅、每章钩子、截断点位置、情绪基调、视角、节奏、标点与规范用字，见 SKILL.md“正文规则”；软目标排锚点、字数计数办法、补字数规则、对话软警告、全篇状态卡核对，见 SKILL.md“细则索引”指向的 `references/` 文件。历史口径变更见 CHANGELOG.md。
 
 ## 文件结构
 
@@ -34,7 +34,7 @@ short-story-skill/
     ├── final-audit.md        # 全篇状态卡核对与全文自洽
     ├── reviewer-rubric.md    # 八项评审量表与输出格式
     ├── state-card.md         # 批次状态卡（构思维护）
-    ├── rejection-checklist.md  # 常见拒稿点清单（开局可选）
+    ├── rejection-checklist.md  # 常见拒稿点清单（默认启用）
     ├── anti-ai-checklist.md  # 去 AI 味检查
     ├── submission-body-rules.md  # 背景转述，不作执行前提
     ├── stack.md              # 作者实测 AI 与 skill（作者示例，可选）
@@ -56,7 +56,7 @@ cp -r inkforge/short-story-skill ~/.claude/skills/  # Claude Code；Muse 放到 
 /short-story-skill 剧情：【你的剧情】
 ```
 
-Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】”即可，效果一样。不能安装的网页对话，才用仓库链接那句作备用。
+Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中文短篇，剧情：【你的剧情】”即可，效果一样。不能安装的网页对话，才用仓库链接那句作备用。
 
 维护：改文档后跑 `python3 scripts/check_pointers.py` 与 `python3 scripts/test_count_chapters.py`，两项通过才能推。
 
@@ -69,4 +69,4 @@ Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中�
 
 ## 边界
 
-本 skill 不替用户决定题材，不承诺收益，不含用户真实作品、账号与收入截图。收入证明只在项目 README 中脱敏展示。签约编辑专属的题材偏好、保底条件和审稿时效不作为通用标准，不写入本 skill 的主流程。
+本 skill 不替用户决定题材，不承诺收益，不含用户真实作品、账号与收入截图。收入证明只在项目 README 中脱敏展示。
