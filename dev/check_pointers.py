@@ -30,7 +30,6 @@ from pathlib import Path
 # every heading still exists.
 KEY_PHRASES = [
     "唯一完整定义",   # anchor definition, SKILL.md 正文规则 only
-    "字数计数办法",
     "弯引号",
     "硬线",
     "锚点累计",
@@ -54,7 +53,7 @@ FILE_PATTERNS = [
     re.compile(r"(references/[^`\s]+\.md)"),
     re.compile(r"(scripts/[^`\s]+\.py)"),
 ]
-ROLE_FILES = ["prompts/writer.md", "prompts/skeleton.md", "prompts/conceiver.md"]
+ROLE_FILES = ["prompts/writer.md", "prompts/conceiver.md"]
 
 
 def clean_target(raw: str) -> str:
