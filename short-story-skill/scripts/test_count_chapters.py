@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Regression tests for count_chapters.py (synthetic samples only).
+
+These are the samples reviewers used across v0.4-v0.8, frozen so a future
+script change cannot silently break a branch. No story text is tested
+here; every sample is invented for the test itself.
+
+Run: python3 scripts/test_count_chapters.py
+"""
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+SCRIPT = Path(__file__).resolve().parent / "count_chapters.py"
+
+
+def run(text, args=()):
+    with tempfile.TemporaryDirectory() as d:
+        f = Path(d) / "t.txt"
+        f.write_text(text, encoding="utf-8")
+        r = subprocess.run([sys.executable, str(SCRIPT), str(f), *args],
+                           capture_output=True, text=True)
+        return r
+
+
+def chapter(n, body):
+    return f"\n{n}\n{body}"
+
+
+class TestFormats(unittest.TestCase):
+    def test_markers(self):
+        # 第一章 / 1. / # 1 / 第1章 重逢 / 第2章反转 (no space) all parse.
+        text = ("引言" * 60
+                + chapter("第一章", "正文。" * 200)
+                + chapter("2.", "正文。" * 200)
+                + chapter("# 3", "正文。" * 200)
+                + chapter("第4章 重逢", "正文。" * 200)
+                + chapter("第5章反转", "正文。" * 200))
+        r = run(text)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("章数: 5", r.stdout)
+
+    def test_batch_file_with_start_chapter(self):
+        text = chapter("5", "正文。" * 200) + chapter("6", "正文。" * 200)
+        r = run(text, ["--start-chapter", "5"])
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("章数: 2", r.stdout)
+
+    def test_batch_file_without_start_chapter_fails(self):
+        text = chapter("5", "正文。" * 200) + chapter("6", "正文。" * 200)
+        r = run(text)
+        self.assertNotEqual(r.returncode, 0)
+
+
+class TestDialogue(unittest.TestCase):
+    def test_batch_zero_dialogue_not_hidden_by_cumulative(self):
+        # First 4 chapters dialogue-heavy, last 4 zero dialogue.
+        dlg = "“你好吗？”" * 20 + "正文。" * 100
+        zero = "正文。" * 200
+        text = ("引言" * 60
+                + "".join(chapter(i, dlg) for i in range(1, 5))
+                + "".join(chapter(i, zero) for i in range(5, 9)))
+        r = run(text, ["--batch-from", "5"])
+        self.assertIn("本批对话占比: 0.0%", r.stdout)
+        self.assertIn("低于 15%", r.stdout)
+
+    def test_straight_quotes_counted_but_warned(self):
+        text = ("引言" * 60 + chapter("1", '"你来了。"' + "正文。" * 200))
+        r = run(text)
+        self.assertIn("检测到直引号", r.stdout)
+
+    def test_single_char_emphasis_not_dialogue(self):
+        text = ("引言" * 60
+                + chapter("1", "“沈”“影”“线”" + "正文。" * 200)
+                + chapter("2", "“嗯”" + "正文。" * 200))
+        r = run(text)
+        # Chapter 2 keeps its 1-char interjection; chapter 1 contributes 0.
+        self.assertIn("累计正文对话合计: 1 字", r.stdout)
+
+
+class TestBoundsAndAnchor(unittest.TestCase):
+    def test_upper_bound_no_grace_band(self):
+        text = ("引言" * 60 + chapter("1", "正文。" * 550)
+                + chapter("2", "正文。" * 700))
+        r = run(text)
+        self.assertIn("超范围章数: 2", r.stdout)
+        self.assertIn("1001 字也算超范围", r.stdout)
+
+    def test_final_only_verdict(self):
+        text = ("引言" * 60 + chapter("1", "正文。" * 200)
+                + chapter("2", "正文。" * 200))
+        r = run(text, ["--anchor-chapter", "1"])
+        self.assertNotIn("不在 35%-55% 内", r.stdout)
+        r = run(text, ["--anchor-chapter", "1", "--final"])
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_soft_target_below_written_chapters(self):
+        text = ("引言" * 60 + "".join(chapter(i, "正文。" * 200) for i in range(1, 7)))
+        r = run(text, ["--anchor-chapter", "3", "--soft-total-chapters", "4"])
+        self.assertIn("软目标已失效", r.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
