@@ -43,11 +43,20 @@ short-story-skill/
 
 ## 怎么用
 
-复制下面这句话发给你的 AI，把【你的剧情】换成你的剧情：
+安装到本机，一次即可：
 
 ```
-请使用 https://github.com/RicLumen/inkforge 里的 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】
+git clone https://github.com/RicLumen/inkforge
+cp -r inkforge/short-story-skill ~/.claude/skills/  # Claude Code；Muse 放到 ~/workspace/custom-skills/
 ```
+
+装好后直接用命令开写，把【你的剧情】换成你的剧情：
+
+```
+/short-story-skill 剧情：【你的剧情】
+```
+
+Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】”即可，效果一样。不能安装的网页对话，才用仓库链接那句作备用。
 
 维护：改文档后跑 `python3 scripts/check_pointers.py` 与 `python3 scripts/test_count_chapters.py`，两项通过才能推。
 

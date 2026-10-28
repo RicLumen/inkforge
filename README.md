@@ -1,7 +1,7 @@
 # ✍️ InkForge — AI 短篇小说方法 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前状态：v0.9.2。SKILL.md 已拆分为流程与索引，细则在 `short-story-skill/references/` 里；核心流程可用，欢迎按流程试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中，那些只是示例，空着不阻塞流程。
+> 当前状态：v0.9.3。SKILL.md 已拆分为流程与索引，细则在 `short-story-skill/references/` 里；核心流程可用，欢迎按流程试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中，那些只是示例，空着不阻塞流程。
 
 <p align="center">
   <img src="https://img.shields.io/badge/定位-短篇方法论-brightgreen" alt="定位" />
@@ -36,11 +36,20 @@ InkForge 是一个中文付费短篇写作方法 skill。
 
 ## 快速开始
 
-复制下面这句话发给你的 AI，把【你的剧情】换成你的剧情，不用手动安装，它会自己读取这个仓库里的 skill：
+安装到本机，一次即可：
 
 ```
-请使用 https://github.com/RicLumen/inkforge 里的 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】
+git clone https://github.com/RicLumen/inkforge
+cp -r inkforge/short-story-skill ~/.claude/skills/  # Claude Code；Muse 放到 ~/workspace/custom-skills/
 ```
+
+装好后直接用命令开写，把【你的剧情】换成你的剧情：
+
+```
+/short-story-skill 剧情：【你的剧情】
+```
+
+Muse 里没有斜杠命令时，直接说“用 short-story-skill 写一篇中文付费短篇，剧情：【你的剧情】”即可，效果一样。不能安装的网页对话，才用仓库链接那句作备用。
 
 ## 目录
 
