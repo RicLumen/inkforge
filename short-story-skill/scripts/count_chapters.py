@@ -14,7 +14,7 @@ Input format (strict, fail loudly on mismatch):
   - Chapter markers, one per line, in increasing order, by default starting
     at 1 (or at --start-chapter N for a batch file):
       1
-      第1章 / 第一章 / 第1章 重逢 / 第一章 重逢
+      第1章 / 第一章 / 第1章 重逢 / 第1章重逢（章名与章号之间可无空格）
       第 1 章
       1. / 1. 重逢
       1、
@@ -65,7 +65,7 @@ INTRO_MAX = 200
 
 MARKERS = [
     re.compile(r"^#\s*(\d+)(?:\s+.*)?$"),
-    re.compile(r"^第\s*(\d+)\s*章(?:\s.*)?$"),
+    re.compile(r"^第\s*(\d+)\s*章(?:.*)?$"),
     re.compile(r"^(\d+)[\.、](?:\s+.*)?$"),
     re.compile(r"^(\d+)\s*$"),
 ]
@@ -92,7 +92,7 @@ def parse_marker(line: str):
         m = pat.match(s)
         if m:
             return int(m.group(1))
-    m = re.match(r"^第\s*([一二三四五六七八九十]+)\s*章(?:\s.*)?$", s)
+    m = re.match(r"^第\s*([一二三四五六七八九十]+)\s*章(?:.*)?$", s)
     if m:
         return cn_to_int(m.group(1))
     return None
@@ -120,6 +120,13 @@ def main() -> int:
     ap.add_argument("file")
     ap.add_argument("--anchor-chapter", type=int, default=None)
     ap.add_argument("--start-chapter", type=int, default=1)
+    ap.add_argument("--final", action="store_true",
+                    help="only with --final is the cutoff share a verdict; "
+                    "without it, the share is a draft reference/forecast only")
+    ap.add_argument("--soft-total-chapters", type=int, default=None,
+                    help="soft target total chapters for a forecast share; "
+                    "forecast = estimated anchor cumulative / "
+                    "(intro + soft total * average written chapter length)")
     args = ap.parse_args()
 
     raw = Path(args.file).read_text(encoding="utf-8")
@@ -136,6 +143,7 @@ def main() -> int:
     buf: list[str] = []
     expected = args.start_chapter
     warnings: list[str] = []
+    suspected = re.compile(r"^第.*章|^#\s*\d+|^\d+[\.、]")
     for lineno, line in enumerate(lines, start=1):
         num = parse_marker(line)
         if num is not None:
@@ -147,10 +155,17 @@ def main() -> int:
             else:
                 warnings.append(
                     f"第 {lineno} 行“{line.strip()}”不是下一个章节号"
-                    f"（期望 {expected}），已当作正文处理"
+                    f"（期望 {expected}），已当作正文处理；"
+                    f"请先检查前一章的章节行是否被识别为章节号"
                 )
                 buf.append(line)
         else:
+            if suspected.match(line.strip()):
+                warnings.append(
+                    f"第 {lineno} 行疑似章节行“{line.strip()}”未被识别为章节号，"
+                    f"已当作正文处理；请检查格式（建议用“第N章 标题”带空格，"
+                    f"或纯数字章节号）"
+                )
             buf.append(line)
     sections.append((current_label, "\n".join(buf)))
     sections = [(l, t) for l, t in sections if clean(t)]
@@ -198,8 +213,29 @@ def main() -> int:
 
     if args.anchor_chapter is not None:
         labels = [r[0] for r in rows]
-        if str(args.anchor_chapter) not in labels:
-            print(f"\n截断点：锚点章节 {args.anchor_chapter} 尚未出现，不计算比例。")
+        if args.start_chapter != 1:
+            print(
+                f"\n截断点：批次文件（从第 {args.start_chapter} 章开始）无法算全篇占比，"
+                "锚点比例需要累计全文，请对累计全文跑 --anchor-chapter，"
+                "此处不输出批次比例，避免误导。"
+            )
+        elif str(args.anchor_chapter) not in labels:
+            if args.soft_total_chapters and not args.final:
+                intro = next((r[1] for r in rows if r[0] == "引言"), 0)
+                ch_counts = [r[1] for r in rows if r[0] != "引言"]
+                avg = sum(ch_counts) / len(ch_counts) if ch_counts else 0
+                denom = intro + args.soft_total_chapters * avg
+                numer = intro + args.anchor_chapter * avg
+                forecast = numer / denom if denom else 0
+                print(
+                    f"\n截断点（草稿阶段，预估，非判定）：锚点章节 {args.anchor_chapter} 尚未出现，"
+                    f"预估锚点累计约 {numer:.0f} 字（引言 + 锚点章号 × 平均章长 {avg:.0f} 字），"
+                    f"预估全篇约 {denom:.0f} 字（引言 + 软目标 {args.soft_total_chapters} 章 × 平均章长），"
+                    f"预估占比 {forecast:.1%}；预估偏离 35%-55% 时只作提前预警，"
+                    "判定只在全篇写完后用 --final 做。"
+                )
+            else:
+                print(f"\n截断点：锚点章节 {args.anchor_chapter} 尚未出现，不计算比例。")
         else:
             total_all = sum(r[1] for r in rows)
             upto = 0
@@ -207,16 +243,34 @@ def main() -> int:
                 upto += total
                 if label == str(args.anchor_chapter):
                     break
-            share = upto / total_all if total_all else 0
-            status = "在 35%-55% 内" if 0.35 <= share <= 0.55 else "不在 35%-55% 内"
-            print(
-                f"\n截断点：锚点章节 {args.anchor_chapter}，"
-                f"锚点前累计 {upto} 字，占全文 {share:.1%}，{status}。"
-            )
-            print(
-                "注意：截断点判定只在全篇写完后做。未写完时这个比例只是已写部分"
-                "的比例，锚点刚写完时必然接近 100%，逐批的数字一律忽略。"
-            )
+            if args.final:
+                share = upto / total_all if total_all else 0
+                status = "在 35%-55% 内" if 0.35 <= share <= 0.55 else "不在 35%-55% 内"
+                print(
+                    f"\n截断点（全篇写完，判定）：锚点章节 {args.anchor_chapter}，"
+                    f"锚点累计（含锚点章） {upto} 字，占全文 {share:.1%}，{status}。"
+                )
+            elif args.soft_total_chapters:
+                intro = next((r[1] for r in rows if r[0] == "引言"), 0)
+                ch_counts = [r[1] for r in rows if r[0] != "引言"]
+                avg = sum(ch_counts) / len(ch_counts) if ch_counts else 0
+                denom = intro + args.soft_total_chapters * avg
+                # numerator: actual if anchor written (it is, here), else estimate
+                forecast = upto / denom if denom else 0
+                print(
+                    f"\n截断点（草稿阶段，预估，非判定）：锚点章节 {args.anchor_chapter}，"
+                    f"锚点累计（含锚点章） {upto} 字，预估全篇约 {denom:.0f} 字"
+                    f"（引言 + 软目标 {args.soft_total_chapters} 章 × 平均章长 {avg:.0f} 字），"
+                    f"预估占比 {forecast:.1%}；预估偏离 35%-55% 时只作提前预警，"
+                    "不要按它改已评审的批次，判定只在全篇写完后用 --final 做。"
+                )
+            else:
+                share = upto / total_all if total_all else 0
+                print(
+                    f"\n截断点（草稿阶段，仅参考，不判定）：锚点章节 {args.anchor_chapter}，"
+                    f"锚点累计（含锚点章） {upto} 字，占已写部分 {share:.1%}；"
+                    "锚点刚写完时这个数字必然接近 100%，请忽略，不要照着改。"
+                )
     return 0
 
 
