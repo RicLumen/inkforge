@@ -1,7 +1,7 @@
 # ✍️ InkForge — AI 短篇小说方法 Skill
 
 > **题材由你定，这里只讲一篇短篇是怎么跑通的。**
-> 当前状态：v0.9.3。SKILL.md 已拆分为流程与索引，细则在 `short-story-skill/references/` 里；核心流程可用，欢迎按流程试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中，那些只是示例，空着不阻塞流程。
+> 当前状态：v0.9.3。SKILL.md 已拆分为流程与索引，细则在 `short-story-skill/references/` 里；核心流程可用，欢迎按流程试用并反馈；作者示例栈、发布平台与脱敏示例仍在补齐中。
 
 <p align="center">
   <img src="https://img.shields.io/badge/定位-短篇方法论-brightgreen" alt="定位" />
