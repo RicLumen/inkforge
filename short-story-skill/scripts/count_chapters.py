@@ -86,9 +86,13 @@ def main():
     sections, label, buf, expected, warnings = [], "引言", [], 1, []
     for lineno, line in enumerate(lines, start=1):
         num = parse_marker(line)
-        if num == expected:
+        if num == expected or (num is not None and num > expected > 1):
+            if num != expected:
+                warnings.append(
+                    f"第 {lineno} 行“{line.strip()}”跳号（期望第 {expected} 章），已按第 {num} 章对齐"
+                )
             sections.append((label, "\n".join(buf)))
-            label, buf, expected = str(num), [], expected + 1
+            label, buf, expected = str(num), [], num + 1
             continue
         if num is not None or SUSPECTED.match(line.strip()):
             warnings.append(f"第 {lineno} 行“{line.strip()}”没有识别为第 {expected} 章，按正文计数")

@@ -79,5 +79,31 @@ class TestBoundsAndAnchor(unittest.TestCase):
         self.assertIn("在 35%-55% 内", r.stdout)
 
 
+class TestJumpRecovery(unittest.TestCase):
+    def test_jump_keeps_later_chapters(self):
+        text = ("引言" * 60
+                + chapter("1", "正文。" * 200)
+                + chapter("3", "正文。" * 200)
+                + chapter("4", "正文。" * 200))
+        r = run(text)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("章数: 3", r.stdout)
+        self.assertIn("跳号", r.stdout)
+        self.assertRegex(r.stdout, r"(?m)^\s*3\s+")
+        self.assertRegex(r.stdout, r"(?m)^\s*4\s+")
+
+    def test_jump_resyncs_expected(self):
+        text = ("引言" * 60
+                + chapter("第1章", "正文。" * 200)
+                + chapter("第3章", "正文。" * 200)
+                + chapter("第4章", "正文。" * 200)
+                + chapter("第5章", "正文。" * 200))
+        r = run(text)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("章数: 4", r.stdout)
+        self.assertIn("已按第 3 章对齐", r.stdout)
+        # After resync, 4 and 5 match expected and must not be swallowed.
+        self.assertRegex(r.stdout, r"(?m)^\s*5\s+")
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
