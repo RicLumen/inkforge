@@ -5,7 +5,7 @@
 
 ### 中文短篇网文写作 skill
 
-<img src="https://img.shields.io/badge/version-v1.0.15-555?style=flat-square" alt="版本" height="28" />
+<img src="https://img.shields.io/badge/version-v1.0.16-555?style=flat-square" alt="版本" height="28" />
 <img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" height="28" />
 
 </div>
@@ -16,7 +16,7 @@
 
 构思、写作、评审三个角色分批循环：
 
-1. 构思角色给下一批的方向，并维护一张状态卡（主线、锚点、基调、视角、时间线、人物状态、未收伏笔）。
+1. 构思角色给下一批的方向，并维护一张状态卡（主线、锚点、基调、视角、时间线、人物画像、人物状态、未收伏笔）。
 2. 写作角色按方向写一批，第一批是引言加第 1–4 章，写完用计数脚本统计累计全文的字数和对话占比。
 3. 评审角色按八项量表逐项评，写作角色逐条改，评审角色给出“不用再改”才进下一批；同一批改到第 3 轮仍有分歧，交给用户定。
 4. 全篇写完后，评审角色对照全文核对状态卡，查前后是否自洽，再用脚本核对截断点。
