@@ -1,9 +1,7 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/inkforge-title-dark.svg" />
-  <img src="assets/inkforge-title-light.svg" alt="InkForge" width="520" />
-</picture>
+<img src="assets/inkforge-title-light.svg#gh-light-mode-only" alt="InkForge" width="520" />
+<img src="assets/inkforge-title-dark.svg#gh-dark-mode-only" alt="InkForge" width="520" />
 
 ### 中文短篇网文写作 skill
 
