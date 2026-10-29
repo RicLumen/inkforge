@@ -4,7 +4,7 @@
 
 中文短篇网文写作 skill，题材由你定。
 
-<img src="https://img.shields.io/badge/version-v1.0.14-555?style=flat-square" alt="版本" />
+<img src="https://img.shields.io/badge/version-v1.0.15-555?style=flat-square" alt="版本" />
 <img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" />
 
 </div>
