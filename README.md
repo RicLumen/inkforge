@@ -1,12 +1,15 @@
-# ✍️ InkForge — AI 短篇网文写作 Skill
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/版本-v1.0.12-blue" alt="版本" />
-  <img src="https://img.shields.io/badge/定位-中文短篇网文-brightgreen" alt="定位" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License" />
-</p>
+# InkForge
 
-InkForge 是一个中文短篇网文写作 skill，题材由你定。
+中文短篇网文写作 skill，题材由你定。
+
+<img src="https://img.shields.io/badge/version-v1.0.14-555?style=flat-square" alt="版本" />
+<img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" />
+
+</div>
+
+<br />
 
 ## 怎么写
 
@@ -21,16 +24,19 @@ InkForge 是一个中文短篇网文写作 skill，题材由你定。
 
 ## 格式要点
 
-- 动笔前不定总字数，写完再看篇幅。
-- 引言约 150 字，单章 500–1000 字，每章结尾留钩子。
-- 截断点在锚点章（主角彻底决裂、亮出底牌或核心真相揭开的那一章）之后，全篇写完后应占全文 35%–55%，也就是付费卡点。
-- 本批对话占比低于 15% 时，评审会点出来。
+| 项目 | 要求 |
+| :-- | :-- |
+| 总字数 | 动笔前不定，写完再看篇幅 |
+| 引言 | 约 150 字 |
+| 单章 | 500–1000 字，每章结尾留钩子 |
+| 截断点 | 在锚点章（主角彻底决裂、亮出底牌或核心真相揭开的那一章）之后，全篇写完后应占全文 35%–55%，也就是付费卡点 |
+| 对话占比 | 本批低于 15% 时，评审会点出来 |
 
-完整规则见 `short-story-skill/SKILL.md`。
+完整规则见 [`short-story-skill/SKILL.md`](short-story-skill/SKILL.md)。
 
 ## 安装
 
-```
+```bash
 npx skills add RicLumen/inkforge --skill short-story-skill
 ```
 
@@ -38,13 +44,13 @@ npx skills add RicLumen/inkforge --skill short-story-skill
 
 装好后用命令开写，后面直接说你想写什么：
 
-```
+```text
 /short-story-skill 你想写什么
 ```
 
 计数脚本也可以单独运行：
 
-```
+```bash
 python3 short-story-skill/scripts/count_chapters.py 全文.txt --batch-from 5
 python3 short-story-skill/scripts/count_chapters.py 全文.txt --anchor-chapter 6 --final
 ```
@@ -70,4 +76,4 @@ AI 生成的内容发布前请人工审校，并按平台规则查原创性和�
 
 ## License
 
-MIT，见 `LICENSE`。
+MIT，见 [`LICENSE`](LICENSE)。
