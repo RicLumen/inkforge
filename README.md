@@ -1,11 +1,14 @@
 <div align="center">
 
-# InkForge
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/inkforge-title-dark.svg" />
+  <img src="assets/inkforge-title-light.svg" alt="InkForge" width="520" />
+</picture>
 
-中文短篇网文写作 skill，题材由你定。
+### 中文短篇网文写作 skill
 
-<img src="https://img.shields.io/badge/version-v1.0.15-555?style=flat-square" alt="版本" />
-<img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" />
+<img src="https://img.shields.io/badge/version-v1.0.15-555?style=flat-square" alt="版本" height="28" />
+<img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" height="28" />
 
 </div>
 
