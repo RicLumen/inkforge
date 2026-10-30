@@ -144,7 +144,7 @@ def main():
             upto = sum(r[1] for r in rows[: labels.index(str(args.anchor_chapter)) + 1])
             share = upto / total_all
             status = "在 35%-55% 内" if 0.35 <= share <= 0.55 else "不在 35%-55% 内"
-            print(f"\n截断点：锚点累计（引言到第 {args.anchor_chapter} 章） {upto} 字，占全文 {share:.1%}，{status}。")
+            print(f"\n截断点：引言到第 {args.anchor_chapter} 章共 {upto} 字，占全文 {share:.1%}，{status}。")
     return 0
 
 
