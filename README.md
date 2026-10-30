@@ -5,7 +5,7 @@
 
 ### 中文短篇网文写作 skill
 
-<img src="https://img.shields.io/badge/version-v1.0.19-555?style=flat-square" alt="版本" height="28" />
+<img src="https://img.shields.io/badge/version-v2.0.0-555?style=flat-square" alt="版本" height="28" />
 <img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" height="28" />
 
 </div>
@@ -65,12 +65,17 @@ inkforge/
 ├── dev/                          # 维护用，不进安装包
 │   ├── check_pointers.py         # 文档引用和关键数字检查
 │   └── test_count_chapters.py    # 计数脚本测试
+├── samples/model-test.md         # 模型短测结果
 └── short-story-skill/            # 安装包
     ├── SKILL.md                  # 流程和全部规则
     ├── prompts/                  # 构思 / 写作 / 评审提示词
     ├── references/               # 评审量表、状态卡、去 AI 味检查
     └── scripts/count_chapters.py # 计数脚本
 ```
+
+## 模型短测
+
+六个模型写同两道 50–150 字小题的原样结果，见 [`samples/model-test.md`](samples/model-test.md)。
 
 ## 注意
 
