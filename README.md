@@ -5,7 +5,7 @@
 
 ### 中文短篇网文写作 skill
 
-<img src="https://img.shields.io/badge/version-v1.0.18-555?style=flat-square" alt="版本" height="28" />
+<img src="https://img.shields.io/badge/version-v1.0.19-555?style=flat-square" alt="版本" height="28" />
 <img src="https://img.shields.io/badge/license-MIT-555?style=flat-square" alt="License" height="28" />
 
 </div>
@@ -30,6 +30,7 @@
 | 总字数 | 动笔前不定，写到自然收束 |
 | 引言 | 约 150 字 |
 | 单章 | 500–1000 字，每章结尾留钩子 |
+| 分段 | 短句为主，每段一到三句，不写大段，也不一句一段 |
 | 截断点 | 锚点章（主角彻底决裂、亮出底牌或核心真相揭开的那一章）末尾就是付费卡点；全篇写完后，引言到锚点章应占全文 35%–55% |
 | 对&#8288;话&#8288;占&#8288;比 | 本批低于 15% 时，评审会点出来 |
 
